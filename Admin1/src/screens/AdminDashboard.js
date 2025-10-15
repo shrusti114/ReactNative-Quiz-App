@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
+  SafeAreaView,
+  StatusBar,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { LineChart, Grid, PieChart } from "react-native-svg-charts";
@@ -47,85 +49,106 @@ export default function AdminDashboard() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Admin Dashboard</Text>
-        <View style={styles.headerRight}>
-          <Icon name="account-circle" size={30} color="#4E73DF" />
-          <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
-            <Icon name="menu" size={30} color="#4E73DF" style={{ marginLeft: 10 }} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Dropdown Menu */}
-      {menuVisible && (
-        <View style={styles.menu}>
-          {menuItems.map((item) => (
-            <TouchableOpacity
-              key={item.label}
-              style={styles.menuItem}
-              onPress={() => handleMenuClick(item)}
-            >
-              <Text style={styles.menuText}>{item.label}</Text>
+    <View style={styles.safeArea}>
+      <StatusBar backgroundColor="#F4F6F9" barStyle="dark-content" />
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 60 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Admin Dashboard</Text>
+          <View style={styles.headerRight}>
+            <Icon name="account-circle" size={30} color="#4E73DF" />
+            <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
+              <Icon
+                name="menu"
+                size={30}
+                color="#4E73DF"
+                style={{ marginLeft: 10 }}
+              />
             </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {/* KPI Cards */}
-      <View style={styles.statsContainer}>
-        {stats.map((stat, index) => (
-          <View key={index} style={[styles.statCard, { backgroundColor: stat.color }]}>
-            <Text style={styles.statLabel}>{stat.label}</Text>
-            <Text style={styles.statValue}>{stat.value}</Text>
           </View>
-        ))}
-      </View>
-
-      {/* Charts Section */}
-      <View style={styles.chartSection}>
-        <View style={styles.chartBox}>
-          <Text style={styles.chartTitle}>Performance Overview</Text>
-          <LineChart
-            style={{ height: 200 }}
-            data={stats.map((s) => s.value)}
-            svg={{ stroke: "#4E73DF", strokeWidth: 3 }}
-            contentInset={{ top: 20, bottom: 20 }}
-          >
-            <Grid />
-          </LineChart>
         </View>
 
-        <View style={styles.chartBox}>
-          <Text style={styles.chartTitle}>Statistics Breakdown</Text>
-          <PieChart style={{ height: 200 }} data={pieData} innerRadius={40} />
-          <View style={styles.pieLegend}>
-            {stats.map((item) => (
-              <Text key={item.label} style={styles.legendText}>
-                {item.label}: {item.value}
-              </Text>
+        {/* Dropdown Menu */}
+        {menuVisible && (
+          <View style={styles.menu}>
+            {menuItems.map((item) => (
+              <TouchableOpacity
+                key={item.label}
+                style={styles.menuItem}
+                onPress={() => handleMenuClick(item)}
+              >
+                <Text style={styles.menuText}>{item.label}</Text>
+              </TouchableOpacity>
             ))}
           </View>
+        )}
+
+        {/* KPI Cards */}
+        <View style={styles.statsContainer}>
+          {stats.map((stat, index) => (
+            <View
+              key={index}
+              style={[styles.statCard, { backgroundColor: stat.color }]}
+            >
+              <Text style={styles.statLabel}>{stat.label}</Text>
+              <Text style={styles.statValue}>{stat.value}</Text>
+            </View>
+          ))}
         </View>
-      </View>
-    </ScrollView>
+
+        {/* Charts Section */}
+        <View style={styles.chartSection}>
+          <View style={styles.chartBox}>
+            <Text style={styles.chartTitle}>Performance Overview</Text>
+            <LineChart
+              style={{ height: 200 }}
+              data={stats.map((s) => s.value)}
+              svg={{ stroke: "#4E73DF", strokeWidth: 3 }}
+              contentInset={{ top: 20, bottom: 20 }}
+            >
+              <Grid />
+            </LineChart>
+          </View>
+
+          <View style={styles.chartBox}>
+            <Text style={styles.chartTitle}>Statistics Breakdown</Text>
+            <PieChart style={{ height: 200 }} data={pieData} innerRadius={40} />
+            <View style={styles.pieLegend}>
+              {stats.map((item) => (
+                <Text key={item.label} style={styles.legendText}>
+                  {item.label}: {item.value}
+                </Text>
+              ))}
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
-// Styling
+// ✅ Responsive & Safe Styling
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F4F6F9",
+    paddingTop: StatusBar.currentHeight || 0, // Prevent overlap with status bar
+  },
   container: {
     flex: 1,
     backgroundColor: "#F4F6F9",
-    padding: 20,
+    paddingHorizontal: 20,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 15,
+    marginTop: 10, // extra spacing for devices with notches
   },
   headerTitle: {
     fontSize: 26,
@@ -183,7 +206,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   chartSection: {
-    marginBottom: 40,
+    marginBottom: 30,
   },
   chartBox: {
     backgroundColor: "#fff",
@@ -206,6 +229,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     flexDirection: "row",
     justifyContent: "space-around",
+    flexWrap: "wrap",
   },
   legendText: {
     fontSize: 14,

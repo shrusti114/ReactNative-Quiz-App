@@ -1,15 +1,12 @@
-// src/redux/store.js
 import { configureStore } from "@reduxjs/toolkit";
-import departmentReducer from "./slices/departmentSlice";
-import teacherReducer from "./slices/teacherSlice";
-import subjectReducer from "./slices/subjectSlice";
+import rootReducer from "./reducers";
 
 const store = configureStore({
-  reducer: {
-    departments: departmentReducer,
-    teachers: teacherReducer,
-    subjects: subjectReducer,
-  },
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
 });
 
 export default store;

@@ -1,28 +1,29 @@
-// App.js
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createStackNavigator } from "@react-navigation/stack";
 import { Provider } from "react-redux";
-import store from "./src/redux/store";
 
-// Import your screens
+import store from "./src/redux/store";
+import AdminLogin from "./src/screens/AdminLogin";
 import AdminDashboard from "./src/screens/AdminDashboard";
 import DepartmentManagement from "./src/screens/DepartmentManagement";
-import AdminLogin from "./src/screens/AdminLogin"; // optional
+import SubjectManagement from "./src/screens/SubjectManagement";
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="AdminDashboard"
+          initialRouteName="AdminLogin"
           screenOptions={{ headerShown: false }}
         >
-          <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
-          <Stack.Screen name="DepartmentManagement" component={DepartmentManagement} />
           <Stack.Screen name="AdminLogin" component={AdminLogin} />
+          <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
+          <Stack.Screen name="DepartmentManagement" component={DepartmentManagement} /> 
+          <Stack.Screen name="SubjectManagement" component={SubjectManagement} />
+
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

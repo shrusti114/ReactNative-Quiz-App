@@ -29,7 +29,8 @@
     "react-native-svg": "15.12.1",
     "react-native-svg-charts": "^5.4.0",
     "react-native-web": "^0.21.0",
-    "react-redux": "^9.2.0"
+    "react-redux": "^9.2.0",
+    "redux-persist": "^6.0.0"
   },
   "private": true
 }
