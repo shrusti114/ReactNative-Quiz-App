@@ -17,13 +17,15 @@ const departmentSlice = createSlice({
     },
     updateDepartment: (state, action) => {
       const index = state.departments.findIndex(
-        (d) => d.department_id === action.payload.department_id
+        (dept) => dept.department_id === action.payload.department_id
       );
-      if (index >= 0) state.departments[index] = action.payload;
+      if (index >= 0) {
+        state.departments[index] = action.payload;
+      }
     },
     deleteDepartment: (state, action) => {
       state.departments = state.departments.filter(
-        (d) => d.department_id !== action.payload
+        (dept) => dept.department_id !== action.payload
       );
     },
     setLoading: (state, action) => {
@@ -32,7 +34,9 @@ const departmentSlice = createSlice({
   },
 });
 
+// Export actions
 export const { setDepartments, addDepartment, updateDepartment, deleteDepartment, setLoading } =
   departmentSlice.actions;
 
+// Export reducer
 export default departmentSlice.reducer;

@@ -5,24 +5,21 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  StyleSheet,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { LineChart, Grid, PieChart } from "react-native-svg-charts";
+import { BarChart, Grid, PieChart } from "react-native-svg-charts";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 export default function AdminDashboard() {
   const navigation = useNavigation();
   const [menuVisible, setMenuVisible] = useState(false);
 
-  // Dashboard Data
   const stats = [
-    { label: "Students", value: 120, color: "#4E73DF" },
-    { label: "Teachers", value: 15, color: "#1CC88A" },
-    { label: "Departments", value: 5, color: "#F6C23E" },
-    { label: "Subjects", value: 20, color: "#E74A3B" },
+    { label: "Students", value: 120, color: "#4169E1" }, // Royal Blue
+    { label: "Teachers", value: 15, color: "#D4AF37" }, // Gold
+    { label: "Departments", value: 5, color: "#9B59B6" }, // Purple
+    { label: "Subjects", value: 20, color: "#E67E22" }, // Amber
   ];
 
   const pieData = stats.map((item, index) => ({
@@ -49,79 +46,67 @@ export default function AdminDashboard() {
   };
 
   return (
-    <View style={styles.safeArea}>
-      <StatusBar backgroundColor="#F4F6F9" barStyle="dark-content" />
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={{ paddingBottom: 60 }}
-        showsVerticalScrollIndicator={false}
-      >
+    <View style={{ flex: 1, backgroundColor: "#0D0D0D", paddingTop: StatusBar.currentHeight || 0 }}>
+      <StatusBar backgroundColor="#0D0D0D" barStyle="light-content" />
+      <ScrollView contentContainerStyle={{ paddingBottom: 60, paddingHorizontal: 20 }}>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Admin Dashboard</Text>
-          <View style={styles.headerRight}>
-            <Icon name="account-circle" size={30} color="#4E73DF" />
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 15 }}>
+          <Text style={{ fontSize: 26, fontWeight: "bold", color: "#D4AF37", letterSpacing: 1 }}>Admin Dashboard</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Icon name="account-circle" size={32} color="#D4AF37" />
             <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
-              <Icon
-                name="menu"
-                size={30}
-                color="#4E73DF"
-                style={{ marginLeft: 10 }}
-              />
+              <Icon name="menu" size={32} color="#D4AF37" style={{ marginLeft: 10 }} />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Dropdown Menu */}
         {menuVisible && (
-          <View style={styles.menu}>
+          <View style={{ backgroundColor: "#1A1A1A", borderRadius: 10, padding: 10, marginBottom: 20, borderWidth: 1, borderColor: "#333", shadowColor: "#D4AF37", shadowOpacity: 0.3, shadowOffset: { width: 0, height: 4 }, shadowRadius: 6, elevation: 10 }}>
             {menuItems.map((item) => (
               <TouchableOpacity
                 key={item.label}
-                style={styles.menuItem}
+                style={{ paddingVertical: 12, borderBottomColor: "#2E2E2E", borderBottomWidth: 1 }}
                 onPress={() => handleMenuClick(item)}
               >
-                <Text style={styles.menuText}>{item.label}</Text>
+                <Text style={{ fontSize: 16, color: "#E0E0E0", fontWeight: "500" }}>{item.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
         )}
 
         {/* KPI Cards */}
-        <View style={styles.statsContainer}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginBottom: 20 }}>
           {stats.map((stat, index) => (
-            <View
-              key={index}
-              style={[styles.statCard, { backgroundColor: stat.color }]}
-            >
-              <Text style={styles.statLabel}>{stat.label}</Text>
-              <Text style={styles.statValue}>{stat.value}</Text>
+            <View key={index} style={{ width: "47%", borderRadius: 15, padding: 20, marginBottom: 15, backgroundColor: stat.color, shadowColor: "#000", shadowOpacity: 0.5, shadowOffset: { width: 0, height: 6 }, shadowRadius: 8, elevation: 8 }}>
+              <Text style={{ fontSize: 16, color: "#fff", fontWeight: "600" }}>{stat.label}</Text>
+              <Text style={{ fontSize: 28, fontWeight: "bold", color: "#fff", marginTop: 6 }}>{stat.value}</Text>
             </View>
           ))}
         </View>
 
         {/* Charts Section */}
-        <View style={styles.chartSection}>
-          <View style={styles.chartBox}>
-            <Text style={styles.chartTitle}>Performance Overview</Text>
-            <LineChart
+        <View style={{ marginBottom: 30 }}>
+          {/* Bar Chart */}
+          <View style={{ backgroundColor: "#1A1A1A", padding: 20, borderRadius: 15, marginBottom: 25, shadowColor: "#D4AF37", shadowOpacity: 0.3, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 10 }}>
+            <Text style={{ fontSize: 18, fontWeight: "700", marginBottom: 12, color: "#D4AF37", textTransform: "uppercase" }}>Performance Overview</Text>
+            <BarChart
               style={{ height: 200 }}
               data={stats.map((s) => s.value)}
-              svg={{ stroke: "#4E73DF", strokeWidth: 3 }}
+              svg={{ fill: "#D4AF37" }}
               contentInset={{ top: 20, bottom: 20 }}
             >
-              <Grid />
-            </LineChart>
+              <Grid svg={{ stroke: "rgba(255,255,255,0.2)" }} />
+            </BarChart>
           </View>
 
-          <View style={styles.chartBox}>
-            <Text style={styles.chartTitle}>Statistics Breakdown</Text>
+          {/* Pie Chart */}
+          <View style={{ backgroundColor: "#1A1A1A", padding: 20, borderRadius: 15, marginBottom: 25, shadowColor: "#D4AF37", shadowOpacity: 0.3, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 10 }}>
+            <Text style={{ fontSize: 18, fontWeight: "700", marginBottom: 12, color: "#D4AF37", textTransform: "uppercase" }}>Statistics Breakdown</Text>
             <PieChart style={{ height: 200 }} data={pieData} innerRadius={40} />
-            <View style={styles.pieLegend}>
+            <View style={{ marginTop: 15, flexDirection: "row", justifyContent: "space-around", flexWrap: "wrap" }}>
               {stats.map((item) => (
-                <Text key={item.label} style={styles.legendText}>
-                  {item.label}: {item.value}
-                </Text>
+                <Text key={item.label} style={{ fontSize: 14, color: "#E0E0E0", fontWeight: "500" }}>{item.label}: {item.value}</Text>
               ))}
             </View>
           </View>
@@ -130,109 +115,3 @@ export default function AdminDashboard() {
     </View>
   );
 }
-
-// ✅ Responsive & Safe Styling
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F4F6F9",
-    paddingTop: StatusBar.currentHeight || 0, // Prevent overlap with status bar
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F6F9",
-    paddingHorizontal: 20,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-    marginTop: 10, // extra spacing for devices with notches
-  },
-  headerTitle: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#1B1F3B",
-  },
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  menu: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  menuItem: {
-    paddingVertical: 10,
-  },
-  menuText: {
-    fontSize: 16,
-    color: "#1B1F3B",
-  },
-  statsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginBottom: 20,
-  },
-  statCard: {
-    width: "47%",
-    borderRadius: 15,
-    padding: 18,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  statLabel: {
-    fontSize: 15,
-    color: "#fff",
-    fontWeight: "500",
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#fff",
-    marginTop: 5,
-  },
-  chartSection: {
-    marginBottom: 30,
-  },
-  chartBox: {
-    backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 15,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 5,
-  },
-  chartTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 10,
-    color: "#1B1F3B",
-  },
-  pieLegend: {
-    marginTop: 10,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    flexWrap: "wrap",
-  },
-  legendText: {
-    fontSize: 14,
-    color: "#555",
-  },
-});

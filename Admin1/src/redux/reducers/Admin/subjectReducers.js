@@ -32,7 +32,12 @@ const subjectSlice = createSlice({
   },
 });
 
-export const { setSubjects, addSubject, updateSubject, deleteSubject, setLoading } =
-  subjectSlice.actions;
+export const {
+  setSubjects,
+  addSubject,
+  updateSubject,
+  deleteSubject,
+  setLoading,
+} = subjectSlice.actions;
 
 export default subjectSlice.reducer;

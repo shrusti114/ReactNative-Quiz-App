@@ -1,223 +1,329 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  Alert,
+  ScrollView,
+} from "react-native";
 import { Picker } from "@react-native-picker/picker";
-
-const API_URL = "http://10.0.2.2:5000";
+import { API_BASE } from "../config";
 
 export default function TeacherManagement() {
-  const [teachers, setTeachers] = useState([]);
-  const [teacherId, setTeacherId] = useState("");
   const [teacherName, setTeacherName] = useState("");
+  const [teacherEmail, setTeacherEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [department, setDepartment] = useState("");
-  const [subject, setSubject] = useState("");
-  const [quiz, setQuiz] = useState("");
-  const [dropdowns, setDropdowns] = useState({ departments: [], subjects: [], quizzes: [] });
-  const [editingId, setEditingId] = useState(null);
-  const [search, setSearch] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [teachers, setTeachers] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [editingTeacherId, setEditingTeacherId] = useState(null);
+
+  // ✅ Fetch Teachers
+  const fetchTeachers = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/teachers`);
+      const data = await response.json();
+      setTeachers(data);
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+    }
+  };
+
+  // ✅ Fetch Departments for Dropdown
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/departments`);
+      const data = await response.json();
+      setDepartments(data);
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+    }
+  };
+
+  // ✅ Auto-generate Teacher ID (T001, T002...)
+  const generateTeacherId = () => {
+    if (teachers.length === 0) return "T001";
+    const lastId = teachers[teachers.length - 1].teacher_id;
+    const newId = parseInt(lastId.slice(1)) + 1;
+    return `T${newId.toString().padStart(3, "0")}`;
+  };
+
+  // ✅ Add / Update Teacher
+  const saveTeacher = async () => {
+    if (!teacherName || !teacherEmail || !password || !departmentId) {
+      Alert.alert("⚠️ Please fill all fields");
+      return;
+    }
+
+    const selectedDept = departments.find((d) => d.department_id === departmentId);
+    const teacherData = {
+      teacher_name: teacherName,
+      teacher_email: teacherEmail,
+      password: password,
+      department_id: departmentId,
+      department: selectedDept ? selectedDept.department_name : "",
+    };
+
+    try {
+      if (editingTeacherId) {
+        await fetch(`${API_BASE}/updateTeacher/${editingTeacherId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(teacherData),
+        });
+        Alert.alert("✅ Teacher updated successfully!");
+      } else {
+        const newTeacher = { ...teacherData, teacher_id: generateTeacherId() };
+        await fetch(`${API_BASE}/addTeacher`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newTeacher),
+        });
+        Alert.alert("✅ Teacher added successfully!");
+      }
+
+      fetchTeachers();
+      resetForm();
+    } catch (error) {
+      Alert.alert("❌ Error saving teacher");
+      console.error(error);
+    }
+  };
+
+  // ✅ Delete Teacher
+  const deleteTeacher = async (teacher_id) => {
+    try {
+      await fetch(`${API_BASE}/deleteTeacher/${teacher_id}`, { method: "DELETE" });
+      Alert.alert("🗑️ Teacher deleted successfully");
+      fetchTeachers();
+    } catch (error) {
+      Alert.alert("❌ Error deleting teacher");
+      console.error(error);
+    }
+  };
+
+  // ✅ Edit Teacher
+  const editTeacher = (teacher) => {
+    setTeacherName(teacher.teacher_name);
+    setTeacherEmail(teacher.teacher_email);
+    setPassword(teacher.password);
+    setDepartment(teacher.department);
+    setDepartmentId(teacher.department_id);
+    setEditingTeacherId(teacher.teacher_id);
+  };
+
+  // ✅ Reset Form
+  const resetForm = () => {
+    setTeacherName("");
+    setTeacherEmail("");
+    setPassword("");
+    setDepartment("");
+    setDepartmentId("");
+    setEditingTeacherId(null);
+  };
 
   useEffect(() => {
-    fetchDropdowns();
     fetchTeachers();
+    fetchDepartments();
   }, []);
 
-  const fetchDropdowns = async () => {
-    const res = await fetch(`${API_URL}/dropdowns`);
-    const data = await res.json();
-    setDropdowns(data);
-  };
-
-  const fetchTeachers = async () => {
-    const res = await fetch(`${API_URL}/teachers`);
-    const data = await res.json();
-    setTeachers(data);
-  };
-
-  const addTeacher = async () => {
-    if (!teacherId || !teacherName || !department || !subject || !quiz)
-      return Alert.alert("Please fill all fields");
-
-    await fetch(`${API_URL}/teachers`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ teacher_id: teacherId, teacher_name: teacherName, department, subject, quiz }),
-    });
-    Alert.alert("Teacher Added");
-    fetchTeachers();
-    resetForm();
-  };
-
-  const updateTeacher = async () => {
-    await fetch(`${API_URL}/teachers/${editingId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ teacher_id: teacherId, teacher_name: teacherName, department, subject, quiz }),
-    });
-    Alert.alert("Teacher Updated");
-    fetchTeachers();
-    resetForm();
-  };
-
-  const deleteTeacher = async (id) => {
-    await fetch(`${API_URL}/teachers/${id}`, { method: "DELETE" });
-    Alert.alert("Teacher Deleted");
-    fetchTeachers();
-  };
-
-  const handleEdit = (item) => {
-    setEditingId(item._id);
-    setTeacherId(item.teacher_id);
-    setTeacherName(item.teacher_name);
-    setDepartment(item.department);
-    setSubject(item.subject);
-    setQuiz(item.quiz);
-  };
-
-  const resetForm = () => {
-    setTeacherId("");
-    setTeacherName("");
-    setDepartment("");
-    setSubject("");
-    setQuiz("");
-    setEditingId(null);
-  };
-
-  const handleSearch = () => {
-    const filtered = teachers.filter((t) =>
-      t.teacher_name.toLowerCase().includes(search.toLowerCase())
-    );
-    setTeachers(filtered);
-  };
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>👨‍🏫 Teacher Management</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.header}>👩‍🏫 Teacher Management</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Teacher ID"
-        value={teacherId}
-        onChangeText={setTeacherId}
-      />
+      {/* Input Fields */}
       <TextInput
         style={styles.input}
         placeholder="Teacher Name"
+        placeholderTextColor="#888"
         value={teacherName}
         onChangeText={setTeacherName}
       />
-
-      <Picker
-        selectedValue={department}
-        style={styles.picker}
-        onValueChange={setDepartment}
-      >
-        <Picker.Item label="Select Department" value="" />
-        {dropdowns.departments.map((d) => (
-          <Picker.Item key={d._id} label={d.department_name} value={d.department_name} />
-        ))}
-      </Picker>
-
-      <Picker
-        selectedValue={subject}
-        style={styles.picker}
-        onValueChange={setSubject}
-      >
-        <Picker.Item label="Select Subject" value="" />
-        {dropdowns.subjects.map((s) => (
-          <Picker.Item key={s._id} label={s.subject_name} value={s.subject_name} />
-        ))}
-      </Picker>
-
-      <Picker
-        selectedValue={quiz}
-        style={styles.picker}
-        onValueChange={setQuiz}
-      >
-        <Picker.Item label="Select Quiz" value="" />
-        {dropdowns.quizzes.map((q) => (
-          <Picker.Item key={q._id} label={q.quiz_name || q.quiz_id} value={q.quiz_name || q.quiz_id} />
-        ))}
-      </Picker>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={editingId ? updateTeacher : addTeacher}
-      >
-        <Text style={styles.buttonText}>{editingId ? "Update" : "Add"}</Text>
-      </TouchableOpacity>
-
       <TextInput
-        style={styles.search}
-        placeholder="🔍 Search Teacher"
-        value={search}
-        onChangeText={setSearch}
+        style={styles.input}
+        placeholder="Teacher Email"
+        placeholderTextColor="#888"
+        value={teacherEmail}
+        onChangeText={setTeacherEmail}
       />
-      <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-        <Text style={styles.buttonText}>Search</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        placeholderTextColor="#888"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      {/* Department Dropdown */}
+      <Text style={styles.label}>Select Department</Text>
+      <View style={styles.dropdown}>
+        <Picker
+          selectedValue={departmentId}
+          onValueChange={(value) => setDepartmentId(value)}
+          dropdownIconColor="#00d4ff"
+          style={{ color: "white" }}
+        >
+          <Picker.Item label="-- Select Department --" value="" />
+          {departments.map((dept) => (
+            <Picker.Item
+              key={dept.department_id}
+              label={dept.department_name}
+              value={dept.department_id}
+            />
+          ))}
+        </Picker>
+      </View>
+
+      {/* Buttons */}
+      <TouchableOpacity style={styles.addBtn} onPress={saveTeacher}>
+        <Text style={styles.btnText}>
+          {editingTeacherId ? "Update Teacher" : "Add Teacher"}
+        </Text>
       </TouchableOpacity>
+
+      {editingTeacherId && (
+        <TouchableOpacity style={styles.cancelBtn} onPress={resetForm}>
+          <Text style={styles.btnText}>Cancel Edit</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Teacher List */}
+      <Text style={styles.subHeader}>📋 Teacher List</Text>
+      <View style={styles.tableHeader}>
+        <Text style={[styles.cell, styles.headerCell]}>Name</Text>
+        <Text style={[styles.cell, styles.headerCell]}>Email</Text>
+        <Text style={[styles.cell, styles.headerCell]}>Department</Text>
+        <Text style={[styles.cell, styles.headerCell]}>Action</Text>
+      </View>
 
       <FlatList
         data={teachers}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item.teacher_id}
         renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Text style={styles.text}>
-              🆔 {item.teacher_id} | 👨‍🏫 {item.teacher_name}
-              {"\n"}🏢 {item.department} | 📘 {item.subject} | 🧩 {item.quiz}
-            </Text>
-            <View style={styles.actions}>
-              <TouchableOpacity onPress={() => handleEdit(item)}>
-                <Text style={styles.edit}>✏️</Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.cell}>{item.teacher_name}</Text>
+            <Text style={styles.cell}>{item.teacher_email}</Text>
+            <Text style={styles.cell}>{item.department}</Text>
+            <View style={[styles.cell, { flexDirection: "row" }]}>
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => editTeacher(item)}
+              >
+                <Text style={styles.btnText}>Edit</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => deleteTeacher(item._id)}>
-                <Text style={styles.delete}>🗑️</Text>
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={() => deleteTeacher(item.teacher_id)}
+              >
+                <Text style={styles.btnText}>Del</Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
       />
-    </View>
+    </ScrollView>
   );
 }
 
+// ✅ Styles
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#101010", padding: 20 },
-  title: { color: "#fff", fontSize: 22, textAlign: "center", fontWeight: "bold", marginBottom: 20 },
+  container: {
+    backgroundColor: "#121212",
+    padding: 20,
+  },
+  header: {
+    color: "white",
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  label: {
+    color: "#00d4ff",
+    marginBottom: 5,
+    marginTop: 5,
+  },
+  subHeader: {
+    color: "#00d4ff",
+    fontSize: 18,
+    marginTop: 20,
+    marginBottom: 10,
+  },
   input: {
-    backgroundColor: "#222",
-    color: "#fff",
+    backgroundColor: "#1f1f1f",
+    color: "white",
     padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderColor: "#00d4ff",
+    borderWidth: 1,
   },
-  picker: {
-    backgroundColor: "#222",
-    color: "#fff",
-    marginVertical: 5,
-    borderRadius: 10,
+  dropdown: {
+    backgroundColor: "#1f1f1f",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#00d4ff",
+    marginBottom: 10,
   },
-  button: {
-    backgroundColor: "#4CAF50",
+  addBtn: {
+    backgroundColor: "#00d4ff",
     padding: 12,
-    borderRadius: 10,
-    marginVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 10,
   },
-  buttonText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
-  search: {
-    backgroundColor: "#333",
-    color: "#fff",
+  cancelBtn: {
+    backgroundColor: "#666",
     padding: 10,
-    borderRadius: 10,
-    marginVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 20,
   },
-  searchButton: { backgroundColor: "#007BFF", padding: 10, borderRadius: 10 },
-  item: {
-    backgroundColor: "#1e1e1e",
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
+  tableHeader: {
+    flexDirection: "row",
+    borderBottomColor: "#00d4ff",
+    borderBottomWidth: 2,
+    paddingVertical: 8,
   },
-  text: { color: "#fff" },
-  actions: { flexDirection: "row", justifyContent: "flex-end", gap: 15 },
-  edit: { color: "#FFD700", fontSize: 18 },
-  delete: { color: "#FF6347", fontSize: 18 },
+  tableRow: {
+    flexDirection: "row",
+    borderBottomColor: "#333",
+    borderBottomWidth: 1,
+    paddingVertical: 6,
+    alignItems: "center",
+  },
+  cell: {
+    flex: 1,
+    color: "white",
+    textAlign: "center",
+    fontSize: 13,
+  },
+  headerCell: {
+    fontWeight: "bold",
+    color: "#00d4ff",
+  },
+  editBtn: {
+    backgroundColor: "#4CAF50",
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginHorizontal: 3,
+  },
+  deleteBtn: {
+    backgroundColor: "#ff4444",
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginHorizontal: 3,
+  },
+  btnText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 12,
+  },
 });

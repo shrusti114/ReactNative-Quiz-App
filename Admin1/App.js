@@ -8,6 +8,7 @@ import AdminLogin from "./src/screens/AdminLogin";
 import AdminDashboard from "./src/screens/AdminDashboard";
 import DepartmentManagement from "./src/screens/DepartmentManagement";
 import SubjectManagement from "./src/screens/SubjectManagement";
+import TeacherManagement from "./src/screens/TeacherManagement";
 
 const Stack = createStackNavigator();
 
@@ -23,6 +24,8 @@ export default function App() {
           <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
           <Stack.Screen name="DepartmentManagement" component={DepartmentManagement} /> 
           <Stack.Screen name="SubjectManagement" component={SubjectManagement} />
+          <Stack.Screen name="TeacherManagement" component={TeacherManagement} />
+         
 
         </Stack.Navigator>
       </NavigationContainer>
